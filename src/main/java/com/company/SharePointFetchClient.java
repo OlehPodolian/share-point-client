@@ -41,13 +41,13 @@ public class SharePointFetchClient {
         String pwd = props.get("password");
         CredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(AuthScope.ANY,
-                new NTCredentials(user, pwd, "", "DUFRY"));
+                new NTCredentials(user, pwd, "", props.get("domain")));
 
         // You may get 401 if you go through a load-balancer.
         // To fix this, go directly to one the sharepoint web server or
         // change the config. See this article :
         // http://blog.crsw.com/2008/10/14/unauthorized-401-1-exception-calling-web-services-in-sharepoint/
-        HttpHost target = new HttpHost("teamrooms.dufry.com", 80, "http");
+        HttpHost target = new HttpHost(props.get("hostname"), 80, "http");
         HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
 
