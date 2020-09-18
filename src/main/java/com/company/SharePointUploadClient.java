@@ -1,5 +1,7 @@
 package com.company;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
@@ -17,6 +19,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 
 import java.io.File;
+import java.util.Map;
 
 public class SharePointUploadClient {
 
@@ -25,18 +28,26 @@ public class SharePointUploadClient {
                 .setRetryHandler(new DefaultHttpRequestRetryHandler(0,false))
                 .build();
 
+        File file = new File("creds.json");
+        if (! file.exists()) {
+            throw new RuntimeException("You are unauthorized");
+        }
 
-        String user = "S-AA-SHAREPOINT-AP-S";
-        String pwd = "5@4A&P$ync$P";
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, String> props = objectMapper.readValue(file, new TypeReference<Map<String, String >>(){});
+
+
+        String user = props.get("username");
+        String pwd = props.get("password");
         CredentialsProvider credsProvider = new BasicCredentialsProvider();
         credsProvider.setCredentials(AuthScope.ANY,
-                new NTCredentials(user, pwd, "", "DUFRY"));
+                new NTCredentials(user, pwd, "", props.get("domain")));
 
         // You may get 401 if you go through a load-balancer.
         // To fix this, go directly to one the sharepoint web server or
         // change the config. See this article :
         // http://blog.crsw.com/2008/10/14/unauthorized-401-1-exception-calling-web-services-in-sharepoint/
-        HttpHost target = new HttpHost("teamrooms.dufry.com", 80, "http");
+        HttpHost target = new HttpHost(props.get("hostname"), 80, "http");
         HttpClientContext context = HttpClientContext.create();
         context.setCredentialsProvider(credsProvider);
 
