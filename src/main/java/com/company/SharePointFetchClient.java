@@ -2,12 +2,15 @@ package com.company;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.io.FileUtils;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpStatus;
 import org.apache.http.auth.AuthScope;
 import org.apache.http.auth.NTCredentials;
 import org.apache.http.client.CredentialsProvider;
 import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpHead;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.protocol.HttpClientContext;
@@ -21,6 +24,7 @@ import org.apache.http.util.EntityUtils;
 import java.io.File;
 import java.util.Map;
 
+//https://www.rgagnon.com/javadetails/java-get-document-sharepoint-library.html
 public class SharePointFetchClient {
 
     public static void main(String[] args) throws Exception {
@@ -65,31 +69,25 @@ public class SharePointFetchClient {
         }
 
         // The real request, reuse authentication
-        String fileName = "hi.txt";
-        HttpPut request2 = new HttpPut("/tr/ap_docs/Test/hi.txt");  // target
-        request2.setEntity(new FileEntity(new File("/Users/olegpodolian/Desktop/" + fileName)));// source
+        String fileName = "/tr/ap_docs/Test/hi.txt";  // source
+        String targetFolder = "/Users/olegpodolian/Desktop/";
+        HttpGet request2 = new HttpGet("/_api/web/GetFileByServerRelativeUrl('" + fileName + "')/$value");
         CloseableHttpResponse response2 = null;
         try {
             response2 = httpclient.execute(target, request2, context);
-            EntityUtils.consume(response2.getEntity());
+            HttpEntity entity = response2.getEntity();
             int rc = response2.getStatusLine().getStatusCode();
             String reason = response2.getStatusLine().getReasonPhrase();
-            // The possible outcomes :
-            //    201 Created
-            //        The request has been fulfilled and resulted in a new resource being created
-            //    200 OK
-            //        Standard response for successful HTTP requests.
-            //    others
-            //        we have a problem
-            if (rc == HttpStatus.SC_CREATED) {
-                System.out.println(fileName + " is copied (new fileName created)");
-            }
-            else if (rc == HttpStatus.SC_OK) {
-                System.out.println(fileName + " is copied (original overwritten)");
+            if (rc == HttpStatus.SC_OK) {
+                System.out.println("Writing "+ fileName + " to " + targetFolder);
+                File f = new File(fileName);
+                File ff= new File(targetFolder, f.getName());  // target
+                // writing the byte array into a fileName using Apache Commons IO
+                FileUtils.writeByteArrayToFile(ff, EntityUtils.toByteArray(entity));
             }
             else {
-                throw new Exception("Problem while copying " + fileName
-                        + "  reason " + reason + "  httpcode : " + rc);
+                throw new Exception("Problem while receiving " + fileName + "  reason : "
+                        + reason + " httpcode : " + rc);
             }
         }
         finally {
