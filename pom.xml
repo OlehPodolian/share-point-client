@@ -17,6 +17,11 @@
             <artifactId>httpclient</artifactId>
             <version>4.3.5</version>
         </dependency>
+        <dependency>
+            <groupId>io.github.openunirest</groupId>
+            <artifactId>object-mappers-jackson</artifactId>
+            <version>3.0.02</version>
+        </dependency>
     </dependencies>
 
     <build>
