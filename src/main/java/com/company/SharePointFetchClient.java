@@ -71,7 +71,7 @@ public class SharePointFetchClient {
         // The real request, reuse authentication
         String fileName = "/tr/ap_docs/Test/hi.txt";  // source
         String targetFolder = "/Users/olegpodolian/Desktop/";
-        HttpGet request2 = new HttpGet("/_api/web/GetFileByServerRelativeUrl('" + fileName + "')/$value");
+        HttpGet request2 = new HttpGet("/tr/ap_docs/Test/hi.txt");
         CloseableHttpResponse response2 = null;
         try {
             response2 = httpclient.execute(target, request2, context);
